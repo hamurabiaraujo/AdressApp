@@ -2,7 +2,10 @@ package br.ufrn.imd.controller.view;
 
 import br.ufrn.imd.controller.MainApp;
 import br.ufrn.imd.controller.model.Person;
+import br.ufrn.imd.controller.util.DateUtil;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -36,6 +39,28 @@ public class PersonOverviewController {
     private void initialize() {
         firstNameColumn.setCellValueFactory(cellData -> cellData.getValue().firstNameProperty());
         lastNameColumn.setCellValueFactory(cellData -> cellData.getValue().lastNameProperty());
+
+        showPersonDetails(null);
+
+        personTable
+        	.getSelectionModel()
+        	.selectedItemProperty()
+        	.addListener((observable, oldValue, newValue) -> showPersonDetails(newValue));
+    }
+    
+    @FXML
+    private void handleDeletePerson() {
+    	int selectedIndex = personTable.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            personTable.getItems().remove(selectedIndex);
+        } else {
+        	Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Nenhuma seleção");
+            alert.setHeaderText("Nenhuma Pessoa Selecionada");
+            alert.setContentText("Por favor, selecione uma pessoa na tabela.");
+
+            alert.showAndWait();
+        }
     }
     
     public void setMainApp(MainApp mainApp) {
@@ -50,9 +75,8 @@ public class PersonOverviewController {
             streetLabel.setText(person.getStreet());
             postalCodeLabel.setText(Integer.toString(person.getPostalCode()));
             cityLabel.setText(person.getCity());
-
-            // TODO: Nós precisamos de uma maneira de converter o aniversário em um String! 
-            // birthdayLabel.setText(...);
+ 
+            birthdayLabel.setText(DateUtil.format(person.getBirthday()));
         } else {
             firstNameLabel.setText("");
             lastNameLabel.setText("");
@@ -60,6 +84,33 @@ public class PersonOverviewController {
             postalCodeLabel.setText("");
             cityLabel.setText("");
             birthdayLabel.setText("");
+        }
+    }
+    
+    @FXML
+    private void handleNewPerson() {
+        Person tempPerson = new Person();
+        boolean okClicked = mainApp.showPersonEditDialog(tempPerson);
+        if (okClicked) {
+            mainApp.getPersonData().add(tempPerson);
+        }
+    }
+
+    @FXML
+    private void handleEditPerson() {
+        Person selectedPerson = personTable.getSelectionModel().getSelectedItem();
+        if (selectedPerson != null) {
+            boolean okClicked = mainApp.showPersonEditDialog(selectedPerson);
+            if (okClicked) {
+                showPersonDetails(selectedPerson);
+            }
+
+        } else {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Nenhuma seleção");
+            alert.setHeaderText("Nenhuma Pessoa Selecionada");
+            alert.setContentText("Por favor, selecione uma pessoa na tabela.");
+            alert.showAndWait();
         }
     }
 }

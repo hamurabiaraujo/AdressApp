@@ -3,10 +3,12 @@ package br.ufrn.imd.controller;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.IOException;
 
 import br.ufrn.imd.controller.model.Person;
+import br.ufrn.imd.controller.view.PersonEditDialogController;
 import br.ufrn.imd.controller.view.PersonOverviewController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -45,9 +47,6 @@ public class MainApp extends Application {
         showPersonOverview();
     }
 
-    /**
-     * Inicializa o root layout (layout base).
-     */
     public void initRootLayout() {
         try {
             // Carrega o root layout do arquivo fxml.
@@ -64,20 +63,14 @@ public class MainApp extends Application {
         }
     }
 
-    /**
-     * Mostra o person overview dentro do root layout.
-     */
     public void showPersonOverview() {
         try {
-            // Carrega a person overview.
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(MainApp.class.getResource("view/PersonOverview.fxml"));
             AnchorPane personOverview = (AnchorPane) loader.load();
 
-            // Define a person overview no centro do root layout.
             rootLayout.setCenter(personOverview);
 
-            // Dá ao controlador acesso à the main app.
             PersonOverviewController controller = loader.getController();
             controller.setMainApp(this);
 
@@ -86,14 +79,36 @@ public class MainApp extends Application {
         }
     }
 
-    /**
-     * Retorna o palco principal.
-     * @return
-     */
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
+    public boolean showPersonEditDialog(Person person) {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/PersonEditDialog.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Edit Person");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(primaryStage);
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            PersonEditDialogController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setPerson(person);
+
+            dialogStage.showAndWait();
+
+            return controller.isOkClicked();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
     public static void main(String[] args) {
         launch(args);
     }
